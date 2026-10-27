@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>丛台统计学法小课堂</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    background: #faf7f2;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    color: #3a2a1a;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  .header { text-align: center; margin-bottom: 14px; }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 800; color: #b8272c; letter-spacing: 2px; }
+  .header p { margin: 6px 0 0; font-size: 12px; color: #8a7b68; }
+
+  .bar { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(184,39,44,.08); }
+  .bar label { font-size: 14px; color: #5a4a38; white-space: nowrap; }
+  .bar select {
+    flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+    font-size: 14px; font-weight: 600; color: #b8272c; font-family: inherit;
+    appearance: none; -webkit-appearance: none; padding: 4px 0;
+  }
+  .fav-entry {
+    border: none; cursor: pointer; white-space: nowrap;
+    background: linear-gradient(135deg,#f9d46a,#e8b647); color: #7a4f14;
+    font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 16px;
+    font-family: inherit;
+  }
+
+  .card {
+    background: #fffdf8; border-radius: 12px; padding: 20px 18px;
+    box-shadow: 0 4px 18px rgba(184,39,44,.12); border-top: 3px solid #b8272c;
+    min-height: 180px; transition: opacity .22s ease, transform .22s ease;
+  }
+  .card.flip { opacity: .25; transform: translateY(4px) scale(.99); }
+  .badge { display: inline-block; background: linear-gradient(135deg,#b8272c,#d9483b); color: #fff; font-size: 11px; padding: 3px 12px; border-radius: 14px; margin-bottom: 12px; }
+  .law { font-size: 16px; font-weight: 700; color: #3a2a1a; }
+  .article { font-size: 13px; color: #b8272c; font-weight: 600; margin: 4px 0 12px; }
+  .content { background: #fdf5ec; border-left: 3px solid #e8b647; padding: 12px 14px; border-radius: 0 8px 8px 0; margin-bottom: 14px; font-size: 14px; line-height: 1.75; text-align: justify; }
+  .card-foot { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #efe4d2; padding-top: 10px; }
+  .cid { font-size: 11px; color: #b5a892; }
+  .fav-btn { border: 1px solid #d9c8a8; background: none; color: #9a8870; font-size: 12px; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-family: inherit; }
+  .fav-btn.on { color: #b8272c; border-color: #b8272c; background: #fef1f1; font-weight: 600; }
+
+  .actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .btn { border: none; border-radius: 24px; font-size: 15px; font-weight: 600; padding: 12px 0; letter-spacing: 1px; font-family: inherit; cursor: pointer; }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn.primary { background: linear-gradient(135deg,#b8272c,#d9483b); color: #fff; box-shadow: 0 6px 16px rgba(184,39,44,.3); }
+  .btn.ghost { background: #fff; color: #b8272c; border: 1px solid #b8272c; }
+
+  .note { margin-top: 24px; text-align: center; font-size: 11px; color: #b5a892; }
+
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 20; }
+  .mask.show { display: block; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
+    background: #faf7f2; border-radius: 16px 16px 0 0; max-height: 78vh;
+    display: none; flex-direction: column; transform: translateY(100%); transition: transform .25s ease;
+  }
+  .sheet.show { display: flex; transform: translateY(0); }
+  .sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #efe4d2; }
+  .sheet-head h2 { margin: 0; font-size: 16px; color: #b8272c; }
+  .sheet-head button { border: none; background: none; font-size: 14px; color: #8a7b68; cursor: pointer; font-family: inherit; }
+  .sheet-body { overflow-y: auto; padding: 12px 16px 24px; }
+  .fav-item { background: #fffdf8; border-radius: 10px; padding: 14px; margin-bottom: 10px; border-left: 3px solid #b8272c; }
+  .fav-item .fl { font-size: 13px; font-weight: 700; }
+  .fav-item .fa { font-size: 12px; color: #b8272c; font-weight: 600; margin: 2px 0 8px; }
+  .fav-item .fc { font-size: 13px; color: #5a4a38; line-height: 1.65; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+  .fav-tools { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid #efe4d2; padding-top: 8px; }
+  .fav-tools button { flex: 1; border-radius: 14px; font-size: 12px; padding: 6px 0; cursor: pointer; font-family: inherit; }
+  .t-copy { background: #fdf5ec; color: #b8272c; border: 1px solid #e8b647; }
+  .t-del { background: #fef1f1; color: #b8272c; border: 1px solid #d9483b; }
+  .empty { text-align: center; color: #9a8870; padding: 40px 0; font-size: 13px; }
+  .clear-all { width: 100%; margin-top: 6px; background: #fff; color: #b8272c; border: 1px dashed #d9483b; border-radius: 20px; padding: 10px 0; font-size: 13px; cursor: pointer; font-family: inherit; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
+    background: rgba(58,42,26,.9); color: #fff; font-size: 13px;
+    padding: 8px 18px; border-radius: 18px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 40;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>丛台统计学法小课堂</h1>
+    <p>共收录 <span id="total">0</span> 条 · 当前分类 <span id="filtered">0</span> 条 · 已抽 <span id="drawCount">0</span> 次</p>
+  </div>
+
+  <div class="bar">
+    <label for="lawFilter">📚 筛选</label>
+    <select id="lawFilter"></select>
+    <button class="fav-entry" id="openFav">⭐ 我的收藏</button>
+  </div>
+
+  <div class="card" id="card">
+    <div class="badge" id="badge"></div>
+    <div class="law" id="law"></div>
+    <div class="article" id="article"></div>
+    <div class="content" id="content"></div>
+    <div class="card-foot">
+      <span class="cid" id="cid"></span>
+      <button class="fav-btn" id="favBtn">☆ 收藏</button>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary" id="drawBtn">换一个 🎲</button>
+    <button class="btn ghost" id="copyBtn">复制条款</button>
+  </div>
+
+  <div class="note">本页面条款仅供普法学习参考，以正式法律法规文本为准</div>
+</div>
+
+<div class="mask" id="mask"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-head">
+    <h2>⭐ 我的收藏</h2>
+    <button id="closeSheet">关闭</button>
+  </div>
+  <div class="sheet-body" id="favList"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const clauses = [
+  // ========== 《中华人民共和国统计法》 ==========
+  { id: 1,  lawName: '中华人民共和国统计法', articleNo: '第一条',   content: '为了科学、有效地组织统计工作，保障统计资料的真实性、准确性、完整性和及时性，发挥统计在了解国情国力、服务经济社会发展中的重要作用，促进社会主义现代化建设事业发展，制定本法。', category: '立法宗旨' },
+  { id: 2,  lawName: '中华人民共和国统计法', articleNo: '第二条',   content: '本法适用于各级人民政府、县级以上人民政府统计机构和有关部门组织实施的统计活动。统计的基本任务是对经济社会发展情况进行统计调查、统计分析，提供统计资料和统计咨询意见，实行统计监督。', category: '适用范围' },
+  { id: 3,  lawName: '中华人民共和国统计法', articleNo: '第三条',   content: '国家建立集中统一的统计系统，实行统一领导、分级负责的统计管理体制。', category: '管理体制' },
+  { id: 4,  lawName: '中华人民共和国统计法', articleNo: '第四条',   content: '国务院和地方各级人民政府应当加强对统计工作的领导，督促有关部门、单位做好统计工作。', category: '政府职责' },
+  { id: 5,  lawName: '中华人民共和国统计法', articleNo: '第五条',   content: '国家加强统计科学研究，健全科学的统计指标体系，不断改进统计调查方法，提高统计的科学性。国家有计划地加强统计信息化建设，推进统计信息搜集、处理、传输、共享、存储技术和统计数据库体系的现代化。', category: '统计现代化' },
+  { id: 6,  lawName: '中华人民共和国统计法', articleNo: '第六条',   content: '统计机构和统计人员依照本法规定独立行使统计调查、统计报告、统计监督的职权，不受侵犯。地方各级人民政府、政府统计机构和有关部门以及各单位的负责人，不得自行修改统计机构和统计人员依法搜集、整理的统计资料，不得以任何方式要求统计机构、统计人员及其他机构、人员伪造、篡改统计资料。', category: '独立行使职权' },
+  { id: 7,  lawName: '中华人民共和国统计法', articleNo: '第七条',   content: '国家机关、社会团体、企业事业单位和其他组织以及个体工商户和个人等统计调查对象，必须依照本法和国家有关规定，真实、准确、完整、及时地提供统计调查所需的资料，不得提供不真实或者不完整的统计资料，不得迟报、拒报统计资料。', category: '调查对象义务' },
+  { id: 8,  lawName: '中华人民共和国统计法', articleNo: '第八条',   content: '统计工作应当接受社会公众的监督。任何单位和个人有权检举统计中弄虚作假等违法行为。对检举有功的单位和个人应当给予表彰和奖励。', category: '社会监督' },
+  { id: 9,  lawName: '中华人民共和国统计法', articleNo: '第十条',   content: '任何单位和个人不得利用虚假统计资料骗取荣誉称号、物质利益或者职务晋升。', category: '禁止行为' },
+  { id: 10, lawName: '中华人民共和国统计法', articleNo: '第十一条', content: '统计调查项目包括国家统计调查项目、部门统计调查项目和地方统计调查项目。国家统计调查项目是指全国性基本情况的统计调查项目。', category: '调查项目分类' },
+  { id: 11, lawName: '中华人民共和国统计法', articleNo: '第十四条', content: '制定统计调查项目，应当同时制定该项目的统计调查制度，并依照本法第十二条的规定一并报经审批或者备案。统计调查制度应当对调查目的、调查对象、调查内容、调查方法、调查组织方式、调查表式、统计资料的报送和公布等作出规定。', category: '调查制度' },
+  { id: 12, lawName: '中华人民共和国统计法', articleNo: '第十七条', content: '国家制定统一的统计标准，保障统计调查采用的指标涵义、计算方法、分类目录、调查表式和统计编码等的标准化。', category: '统一标准' },
+  { id: 13, lawName: '中华人民共和国统计法', articleNo: '第二十条', content: '县级以上人民政府统计机构和有关部门以及乡、镇人民政府，应当按照国家有关规定建立统计资料的保存、管理制度，建立健全统计信息共享机制。', category: '资料管理' },
+  { id: 14, lawName: '中华人民共和国统计法', articleNo: '第二十一条', content: '国家机关、社会团体、企业事业单位和其他组织等统计调查对象，应当按照国家有关规定设置原始记录、统计台账，建立健全统计资料的审核、签署、交接、归档等管理制度。', category: '统计基础工作' },
+  { id: 15, lawName: '中华人民共和国统计法', articleNo: '第二十五条', content: '统计调查中获得的能够识别或者推断单个统计调查对象身份的资料，任何单位和个人不得对外提供、泄露，不得用于统计以外的目的。', category: '保密义务' },
+  { id: 16, lawName: '中华人民共和国统计法', articleNo: '第二十九条', content: '统计机构、统计人员应当依法履行职责，如实搜集、报送统计资料，不得伪造、篡改统计资料，不得以任何方式要求任何单位和个人提供不真实的统计资料，不得有其他违反本法规定的行为。', category: '依法履职' },
+  { id: 17, lawName: '中华人民共和国统计法', articleNo: '第三十条', content: '统计人员进行统计调查时，有权就与统计有关的问题询问有关人员，要求其如实提供有关情况、资料并改正不真实、不准确的资料。统计人员进行统计调查时，应当出示县级以上人民政府统计机构或者有关部门颁发的工作证件；未出示的，统计调查对象有权拒绝调查。', category: '统计人员职权' },
+  { id: 18, lawName: '中华人民共和国统计法', articleNo: '第三十二条', content: '县级以上人民政府统计机构及其统计人员对在统计工作中知悉的国家秘密、商业秘密和个人信息，应当予以保密。', category: '保密责任' },
+  { id: 19, lawName: '中华人民共和国统计法', articleNo: '第三十五条', content: '县级以上人民政府统计机构在调查统计违法行为或者核查统计数据时，有权采取下列措施：（一）发出统计检查查询书，向检查对象查询有关事项；（二）要求检查对象提供有关原始记录和凭证、统计台账、统计调查表、会计资料及其他相关证明和资料；（三）就与检查有关的事项询问有关人员；（四）进入检查对象的业务场所和统计数据处理信息系统进行检查、核对；（五）经本机构负责人批准，登记保存检查对象的有关原始记录和凭证、统计台账、统计调查表、会计资料及其他相关证明和资料；（六）对与检查事项有关的情况和资料进行记录、录音、录像、照相和复制。', category: '监督检查措施' },
+  { id: 20, lawName: '中华人民共和国统计法', articleNo: '第四十一条', content: '作为统计调查对象的国家机关、企业事业单位或者其他组织有下列行为之一的，由县级以上人民政府统计机构责令改正，给予警告，可以予以通报；其直接负责的主管人员和其他直接责任人员属于国家工作人员的，由任免机关或者监察机关依法给予处分：（一）拒绝提供统计资料或者经催报后仍未按时提供统计资料的；（二）提供不真实或者不完整的统计资料的；（三）拒绝答复或者不如实答复统计检查查询书的；（四）拒绝、阻碍统计调查、统计检查的；（五）转移、隐匿、篡改、毁弃或者拒绝提供原始记录和凭证、统计台账、统计调查表及其他相关证明和资料的。', category: '法律责任' },
+  { id: 21, lawName: '中华人民共和国统计法', articleNo: '第四十二条', content: '作为统计调查对象的个人在重大国情国力普查活动中拒绝、阻碍统计调查，或者提供不真实或者不完整的普查资料的，由县级以上人民政府统计机构责令改正，予以批评教育。', category: '个人违法责任' },
+  { id: 22, lawName: '中华人民共和国统计法', articleNo: '第四十三条', content: '国家机关工作人员有下列行为之一的，由任免机关或者监察机关依法给予处分：（一）明知统计数据不实，不履行职责调查核实，造成不良后果的；（二）其他滥用职权、玩忽职守、徇私舞弊的行为。', category: '渎职责任' },
+
+  // ========== 《中华人民共和国统计法实施条例》 ==========
+  { id: 23, lawName: '中华人民共和国统计法实施条例', articleNo: '第二条',  content: '统计数据的真实性、准确性、完整性和及时性是统计工作的生命线。', category: '基本原则' },
+  { id: 24, lawName: '中华人民共和国统计法实施条例', articleNo: '第四条',  content: '地方人民政府、县级以上人民政府统计机构和有关部门及其负责人应当保障统计活动依法进行，不得侵犯统计机构、统计人员独立行使统计调查、统计报告、统计监督职权，不得非法干预统计调查对象提供统计资料，不得统计造假、弄虚作假。', category: '禁止干预统计' },
+  { id: 25, lawName: '中华人民共和国统计法实施条例', articleNo: '第六条',  content: '部门统计调查项目、地方统计调查项目的主要内容不得与国家统计调查项目的内容重复、矛盾。', category: '调查项目协调' },
+  { id: 26, lawName: '中华人民共和国统计法实施条例', articleNo: '第九条',  content: '统计调查项目审批机关应当对调查项目的必要性、可行性、科学性进行审查，对符合法定条件的，作出予以批准的书面决定。', category: '项目审批' },
+  { id: 27, lawName: '中华人民共和国统计法实施条例', articleNo: '第十三条', content: '统计调查表应当标明表号、制定机关、批准或者备案文号、有效期限等标志。对未标明前款规定标志或者超过有效期限的统计调查表，统计调查对象有权拒绝填报；县级以上人民政府统计机构应当依法责令停止有关统计调查活动。', category: '调查表管理' },
+  { id: 28, lawName: '中华人民共和国统计法实施条例', articleNo: '第十五条', content: '统计机构、统计人员对在统计调查中知悉的国家秘密、商业秘密和个人信息，负有保密义务。对外提供、泄露单个统计调查对象身份的资料，应当依法承担相应的法律责任。', category: '保密义务' },
+  { id: 29, lawName: '中华人民共和国统计法实施条例', articleNo: '第十七条', content: '国家统计局和省、自治区、直辖市人民政府统计机构应当依法公布统计资料。统计资料公布应当按照规定的权限和程序进行。', category: '统计资料公布' },
+  { id: 30, lawName: '中华人民共和国统计法实施条例', articleNo: '第二十条', content: '国家统计局应当建立健全统计数据质量监控和评估制度，加强对重要统计数据的监控和评估。', category: '质量监控' },
+  { id: 31, lawName: '中华人民共和国统计法实施条例', articleNo: '第二十三条', content: '统计机构、统计人员应当依法履行职责，坚持实事求是，对统计数据的真实性负责。', category: '职责要求' },
+  { id: 32, lawName: '中华人民共和国统计法实施条例', articleNo: '第二十八条', content: '县级以上人民政府统计机构和有关部门应当加强对统计人员的专业培训和职业道德教育，提高统计人员的业务素质和思想道德水平。', category: '统计队伍建设' },
+  { id: 33, lawName: '中华人民共和国统计法实施条例', articleNo: '第三十条', content: '对在统计工作中作出突出贡献的单位和个人，按照国家有关规定给予表彰和奖励。', category: '表彰奖励' },
+  { id: 34, lawName: '中华人民共和国统计法实施条例', articleNo: '第四十条', content: '国家机关、社会团体、企业事业单位或者其他组织有下列行为之一的，由县级以上人民政府统计机构责令改正，给予警告，可以予以通报：（一）自行修改统计资料、编造虚假统计数据的；（二）要求统计机构、统计人员或者其他机构、人员伪造、篡改统计资料的；（三）对依法履行职责或者拒绝、抵制统计违法行为的统计人员打击报复的。', category: '违法行为处罚' },
+
+  // ========== 《统计执法监督检查办法》 ==========
+  { id: 35, lawName: '统计执法监督检查办法', articleNo: '第三条',   content: '统计执法监督检查应当遵循依法、公正、公开、高效的原则，坚持处罚与教育相结合，做到事实清楚、证据确凿、定性准确、处理恰当、程序合法。', category: '执法原则' },
+  { id: 36, lawName: '统计执法监督检查办法', articleNo: '第六条',   content: '统计执法监督检查的范围包括：（一）地方各级人民政府、政府统计机构和有关部门贯彻执行统计法律法规的情况；（二）统计调查对象贯彻执行统计法律法规的情况；（三）统计机构和统计人员依法行使职权和履行职责的情况。', category: '检查范围' },
+  { id: 37, lawName: '统计执法监督检查办法', articleNo: '第十五条', content: '实施统计执法监督检查，应当制定检查计划，明确检查对象、检查内容、检查时间和检查人员。', category: '检查计划' },
+  { id: 38, lawName: '统计执法监督检查办法', articleNo: '第二十五条', content: '统计执法检查人员不得少于二人，并应当出示统计行政执法证件。统计执法检查人员与被检查单位或者个人有直接利害关系的，应当回避。', category: '执法程序' },
+  { id: 39, lawName: '统计执法监督检查办法', articleNo: '第二十八条', content: '统计执法监督检查中取得的证据应当真实、合法、有效。严禁以利诱、欺诈、胁迫、暴力等不正当手段收集证据。', category: '证据要求' },
+  { id: 40, lawName: '统计执法监督检查办法', articleNo: '第三十三条', content: '统计违法案件调查终结后，调查人员应当写出调查报告，提出处理意见。', category: '案件调查' },
+  { id: 41, lawName: '统计执法监督检查办法', articleNo: '第四十条', content: '县级以上人民政府统计机构对违法行为的处罚决定，应当在作出处罚决定之日起七日内，按照有关规定向社会公示。', category: '处罚公示' },
+  { id: 42, lawName: '统计执法监督检查办法', articleNo: '第四十五条', content: '当事人对县级以上人民政府统计机构作出的行政处罚决定不服的，可以依法申请行政复议或者提起行政诉讼。', category: '救济途径' },
+
+  // ========== 《统计人员管理办法》 ==========
+  { id: 43, lawName: '统计人员管理办法', articleNo: '第五条',   content: '统计人员应当具备与其从事的统计工作相适应的专业知识和业务能力。国家实行统计专业技术职务资格考试、评聘制度，提高统计人员的专业素质，保障统计队伍的稳定性。', category: '人员资质' },
+  { id: 44, lawName: '统计人员管理办法', articleNo: '第六条',   content: '统计人员享有下列权利：（一）要求有关单位和人员依照国家规定，如实提供统计资料；（二）检查统计资料的准确性，要求改正不确实的统计资料；（三）检举和控告统计调查工作中的违法弄虚作假行为。', category: '统计人员权利' },
+  { id: 45, lawName: '统计人员管理办法', articleNo: '第十一条', content: '统计人员应当坚持实事求是，恪守职业道德，对其负责搜集、审核、录入的统计资料与统计调查对象报送的统计资料的一致性负责。', category: '职业道德' },
+  { id: 46, lawName: '统计人员管理办法', articleNo: '第十四条', content: '统计人员调动工作或者离职，应当由能够担当规定职责的人员接管，并须办清交接手续。', category: '交接制度' },
+
+  // ========== 《企业统计信用管理办法》 ==========
+  { id: 47, lawName: '企业统计信用管理办法', articleNo: '第三条',  content: '企业统计信用管理应当遵循客观、公正、公开的原则，维护统计调查对象的合法权益。', category: '信用管理原则' },
+  { id: 48, lawName: '企业统计信用管理办法', articleNo: '第五条',  content: '企业统计信用信息包括企业基本信息、统计工作信息、统计违法信息和统计奖励信息。', category: '信用信息内容' },
+  { id: 49, lawName: '企业统计信用管理办法', articleNo: '第十条', content: '对统计信用良好的企业，县级以上人民政府统计机构可以给予减少检查频次、优先推荐参评相关荣誉等激励。', category: '信用激励' },
+  { id: 50, lawName: '企业统计信用管理办法', articleNo: '第十二条', content: '企业有下列行为之一的，县级以上人民政府统计机构应当将其统计信用等级降级：（一）提供不真实或者不完整的统计资料的；（二）迟报、拒报统计资料的；（三）拒绝、阻碍统计调查、统计检查的。', category: '信用降级' },
+  { id: 51, lawName: '企业统计信用管理办法', articleNo: '第十四条', content: '对统计失信企业，县级以上人民政府统计机构应当给予公示，并将其纳入统计严重失信企业名单，实施联合惩戒。', category: '失信惩戒' },
+
+  // ========== 《统计资料管理办法》 ==========
+  { id: 52, lawName: '统计资料管理办法', articleNo: '第六条',  content: '统计资料应当按照规定进行分类、编号、登记，建立健全统计资料的交接、归档、保管和销毁制度。', category: '资料归档' },
+  { id: 53, lawName: '统计资料管理办法', articleNo: '第十条', content: '对外提供统计资料，应当按照规定的程序和权限办理。重要统计资料的对外提供，应当经本级人民政府统计机构负责人批准。', category: '对外提供' },
+  { id: 54, lawName: '统计资料管理办法', articleNo: '第十二条', content: '各级人民政府统计机构和有关部门应当建立统计资料共享机制，实现统计资料的互联互通。', category: '资料共享' },
+
+  // ========== 《国家统计调查项目管理办法》 ==========
+  { id: 55, lawName: '国家统计调查项目管理办法', articleNo: '第四条', content: '国家统计调查项目应当明确调查目的、调查对象、调查内容、调查方式和调查频率等事项。', category: '调查项目设定' },
+  { id: 56, lawName: '国家统计调查项目管理办法', articleNo: '第八条', content: '经批准的国家统计调查项目，应当按照规定编制统计调查表，并报国家统计局备案。', category: '调查表编制' },
+
+  // ========== 《统计行政处罚裁量权基准》 ==========
+  { id: 57, lawName: '统计行政处罚裁量权基准', articleNo: '一·1', content: '拒绝提供统计资料或者经催报后仍未按时提供统计资料的，对企业事业单位或者其他组织，处五万元以上二十万元以下的罚款；情节严重的，处二十万元以上五十万元以下的罚款。', category: '拒报罚则' },
+  { id: 58, lawName: '统计行政处罚裁量权基准', articleNo: '一·2', content: '提供不真实或者不完整的统计资料的，对企业事业单位或者其他组织，处五万元以上二十万元以下的罚款；情节严重的，处二十万元以上五十万元以下的罚款。', category: '虚报罚则' },
+  { id: 59, lawName: '统计行政处罚裁量权基准', articleNo: '一·3', content: '拒绝、阻碍统计调查、统计检查的，对企业事业单位或者其他组织，处五万元以上二十万元以下的罚款；情节严重的，处二十万元以上五十万元以下的罚款。', category: '阻碍执法罚则' },
+  { id: 60, lawName: '统计行政处罚裁量权基准', articleNo: '二·1', content: '作为统计调查对象的个体工商户有统计违法行为的，由县级以上人民政府统计机构责令改正，给予警告，可以并处一万元以下的罚款。', category: '个体户罚则' },
+
+  // ========== 《防范和惩治统计造假弄虚作假督察规定》 ==========
+  { id: 61, lawName: '防范和惩治统计造假弄虚作假督察规定', articleNo: '第四条', content: '统计督察工作坚持问题导向，重点督察贯彻执行党中央、国务院关于统计工作重大决策部署情况，遵守执行统计法律法规情况，统计数据质量情况，以及统计工作责任制落实情况。', category: '督察重点' },
+  { id: 62, lawName: '防范和惩治统计造假弄虚作假督察规定', articleNo: '第十一条', content: '对统计督察中发现的问题，被督察单位应当按照督察反馈意见制定整改方案，明确整改目标、整改措施、整改时限和责任人，限期整改。', category: '整改要求' },
+  { id: 63, lawName: '防范和惩治统计造假弄虚作假督察规定', articleNo: '第十七条', content: '对统计造假、弄虚作假的，实行"一票否决"，不得授予任何荣誉称号，不得评为任何先进单位。', category: '一票否决' },
+
+  // ========== 《统计调查证管理办法》 ==========
+  { id: 64, lawName: '统计调查证管理办法', articleNo: '第三条', content: '统计调查证是统计调查人员依法执行统计调查任务的有效证件。统计调查人员进行统计调查时，应当出示统计调查证。', category: '证件性质' },
+  { id: 65, lawName: '统计调查证管理办法', articleNo: '第八条', content: '统计调查证应当贴有持证人照片，载明持证人姓名、性别、工作单位、证件编号、发证机关、有效期限等内容。', category: '证件内容' }
+];
+
+const FAV_KEY = 'congtai_law_fav_v1';
+let selectedLaw = '全部';
+let current = null;
+let drawCount = 0;
+
+const $ = id => document.getElementById(id);
+
+function getFavIds() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch (e) { return []; }
+}
+function setFavIds(ids) {
+  try { localStorage.setItem(FAV_KEY, JSON.stringify(ids)); } catch (e) {}
+}
+function lawNames() {
+  const out = ['全部'];
+  clauses.forEach(c => { if (out.indexOf(c.lawName) < 0) out.push(c.lawName); });
+  return out;
+}
+function pool() {
+  return selectedLaw === '全部' ? clauses : clauses.filter(c => c.lawName === selectedLaw);
+}
+function pick(p, excludeId) {
+  if (!p.length) return null;
+  if (p.length === 1) return p[0];
+  let idx, i = 0;
+  do { idx = Math.floor(Math.random() * p.length); i++; }
+  while (p[idx].id === excludeId && i < 100);
+  return p[idx];
+}
+
+function render() {
+  if (!current) return;
+  $('badge').textContent = current.category;
+  $('law').textContent = '《' + current.lawName + '》';
+  $('article').textContent = current.articleNo;
+  $('content').textContent = current.content;
+  $('cid').textContent = '编号 #' + current.id;
+  const on = getFavIds().indexOf(current.id) >= 0;
+  const btn = $('favBtn');
+  btn.textContent = on ? '★ 已收藏' : '☆ 收藏';
+  btn.className = 'fav-btn' + (on ? ' on' : '');
+  $('drawCount').textContent = drawCount;
+  $('filtered').textContent = pool().length;
+  $('total').textContent = clauses.length;
+}
+
+function draw() {
+  const card = $('card');
+  card.classList.add('flip');
+  setTimeout(() => {
+    const next = pick(pool(), current ? current.id : null);
+    if (!next) { toast('当前分类暂无条款'); card.classList.remove('flip'); return; }
+    current = next;
+    drawCount++;
+    render();
+    card.classList.remove('flip');
+  }, 200);
+}
+
+function toggleFav() {
+  if (!current) return;
+  const ids = getFavIds();
+  const i = ids.indexOf(current.id);
+  if (i >= 0) { ids.splice(i, 1); toast('已取消收藏'); }
+  else { ids.unshift(current.id); toast('已收藏'); }
+  setFavIds(ids);
+  render();
+  renderFavs();
+}
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => toast('已复制'), () => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('已复制'); } catch (e) { toast('复制失败，请手动选择'); }
+  document.body.removeChild(ta);
+}
+const textOf = c => '【《' + c.lawName + '》' + c.articleNo + '】\n' + c.content;
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+}
+
+function renderFavs() {
+  const ids = getFavIds();
+  const list = ids.map(id => clauses.find(c => c.id === id)).filter(Boolean);
+  const box = $('favList');
+  if (!list.length) {
+    box.innerHTML = '<div class="empty">还没有收藏任何条款<br>点击条款卡右下角的 ☆ 收藏吧</div>';
+    return;
+  }
+  box.innerHTML = list.map(c =>
+    '<div class="fav-item">' +
+      '<div class="fl">《' + c.lawName + '》</div>' +
+      '<div class="fa">' + c.articleNo + '</div>' +
+      '<div class="fc">' + c.content + '</div>' +
+      '<div class="fav-tools">' +
+        '<button class="t-copy" data-copy="' + c.id + '">复制</button>' +
+        '<button class="t-del" data-del="' + c.id + '">移除</button>' +
+      '</div>' +
+    '</div>'
+  ).join('') + '<button class="clear-all" id="clearAll">清空全部收藏</button>';
+}
+
+function openSheet() {
+  renderFavs();
+  $('mask').classList.add('show');
+  $('sheet').classList.add('show');
+}
+function closeSheet() {
+  $('mask').classList.remove('show');
+  $('sheet').classList.remove('show');
+}
+
+// 事件绑定
+$('lawFilter').addEventListener('change', e => {
+  selectedLaw = e.target.value;
+  current = null;
+  draw();
+});
+$('drawBtn').addEventListener('click', draw);
+$('copyBtn').addEventListener('click', () => { if (current) copyText(textOf(current)); });
+$('favBtn').addEventListener('click', toggleFav);
+$('openFav').addEventListener('click', openSheet);
+$('closeSheet').addEventListener('click', closeSheet);
+$('mask').addEventListener('click', closeSheet);
+$('favList').addEventListener('click', e => {
+  const copyId = e.target.getAttribute('data-copy');
+  const delId = e.target.getAttribute('data-del');
+  if (copyId) {
+    const c = clauses.find(x => x.id === Number(copyId));
+    if (c) copyText(textOf(c));
+  } else if (delId) {
+    const ids = getFavIds().filter(i => i !== Number(delId));
+    setFavIds(ids);
+    renderFavs(); render();
+    toast('已移除');
+  } else if (e.target.id === 'clearAll') {
+    if (confirm('确定要清空全部收藏吗？')) {
+      setFavIds([]);
+      renderFavs(); render();
+      toast('已清空');
+    }
+  }
+});
+
+// 初始化
+(function init() {
+  const sel = $('lawFilter');
+  lawNames().forEach(n => {
+    const o = document.createElement('option');
+    o.value = n; o.textContent = n;
+    sel.appendChild(o);
+  });
+  $('total').textContent = clauses.length;
+  current = pick(clauses, null);
+  drawCount = 1;
+  render();
+})();
+</script>
+</body>
+</html>
